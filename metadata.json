@@ -1,0 +1,6 @@
+{
+  "name": "Altea — Voice Assistant for Imene Khodja Bach",
+  "description": "Sophisticated executive voice assistant representing Imene Khodja Bach in English, French, and Arabic.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
