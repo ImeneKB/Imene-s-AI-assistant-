@@ -79,7 +79,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSpeakClick }) => {
                 <img
                   src={portraitImg}
                   alt="Imene Khodja Bach — Portrait"
-                  className="w-full h-full object-cover object-center filter contrast-[1.02]"
+                  className="w-full h-full object-cover object-top filter contrast-[1.02]"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
                     // Fallback container
