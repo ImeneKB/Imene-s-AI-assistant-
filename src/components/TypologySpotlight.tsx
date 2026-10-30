@@ -27,11 +27,11 @@ export const TypologySpotlight: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-12">
           {/* Left Column: Visual Presentation */}
           <div className="lg:col-span-5 bg-white p-4 border border-[#ECE5D8] shadow-xs">
-            <div className="relative aspect-4/3 overflow-hidden bg-[#F0EBE1]">
+            <div className="relative aspect-4/3 overflow-hidden bg-white border border-[#ECE5D8] flex items-center justify-center">
               <img
                 src={typologyImg}
-                alt="Typology Paris — Clean luxury skincare"
-                className="w-full h-full object-cover object-center"
+                alt="Typology Paris — Logo officiel"
+                className="w-full h-full object-contain object-center p-4 sm:p-6"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
@@ -40,7 +40,7 @@ export const TypologySpotlight: React.FC = () => {
             </div>
             <div className="pt-3 text-xs text-[#786E5E] flex justify-between items-center">
               <span className="font-serif italic text-sm text-[#1F1C18]">Typology Paris</span>
-              <span className="uppercase tracking-widest text-[10px]">Expérience Digitale de Luxe</span>
+              <span className="uppercase tracking-widest text-[10px]">Identité & Expérience de Marque</span>
             </div>
           </div>
 
