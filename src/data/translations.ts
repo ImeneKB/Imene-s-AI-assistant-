@@ -294,7 +294,7 @@ export const translations: Record<Language, TranslationContent> = {
       archCaptionSub: 'Ouverture Multiculturelle',
       degrees: [
         {
-          degree: 'Master en Communication, Marketing & Marketing du Prestige',
+          degree: 'Master en Communication, Luxe & Marketing du Prestige',
           institution: 'ESCE Business School',
           period: '09/2025 – 09/2027',
           location: 'Paris, France',
@@ -534,7 +534,7 @@ export const translations: Record<Language, TranslationContent> = {
       archCaptionSub: 'Multicultural Horizon',
       degrees: [
         {
-          degree: 'Master in Communication, Marketing & Luxury Marketing',
+          degree: 'Master in Communication, Luxury & Prestige Marketing',
           institution: 'ESCE Business School',
           period: '09/2025 – 09/2027',
           location: 'Paris, France',
@@ -774,7 +774,7 @@ export const translations: Record<Language, TranslationContent> = {
       archCaptionSub: 'انفتاح متعدد الثقافات',
       degrees: [
         {
-          degree: 'ماجستير في الاتصال، التسويق والتسويق الفاخر',
+          degree: 'ماجستير في الاتصال، الفخامة والتسويق الراقي',
           institution: 'كلية ESCE لإدارة الأعمال',
           period: '09/2025 – 09/2027',
           location: 'باريس، فرنسا',

@@ -114,7 +114,7 @@ export const IMENE_PROFILE: ImeneProfile = {
   ],
   education: [
     {
-      degree: "Master en Communication, Marketing & Marketing du Prestige",
+      degree: "Master en Communication, Luxe & Marketing du Prestige",
       institution: "ESCE Business School",
       period: "09/2025 – 09/2027",
       location: "Paris, France",
