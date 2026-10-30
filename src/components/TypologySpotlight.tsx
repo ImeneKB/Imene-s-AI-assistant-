@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles, CheckCircle2, TrendingUp, Clock, Users } from 'lucide-react';
-import typologyImg from '../assets/images/typology_luxury_skincare_1791558666879.jpg';
+import typologyLogo from '../assets/images/typology_official_logo.png';
 
 export const TypologySpotlight: React.FC = () => {
   return (
@@ -29,7 +29,7 @@ export const TypologySpotlight: React.FC = () => {
           <div className="lg:col-span-5 bg-white p-4 border border-[#ECE5D8] shadow-xs">
             <div className="relative aspect-4/3 overflow-hidden bg-white border border-[#ECE5D8] flex items-center justify-center">
               <img
-                src={typologyImg}
+                src={typologyLogo}
                 alt="Typology Paris — Logo officiel"
                 className="w-full h-full object-contain object-center p-4 sm:p-6"
                 referrerPolicy="no-referrer"
