@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Copy, Check, Calendar, ArrowUpRight } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.tsx';
 import { IMENE_PROFILE } from '../data/imeneProfile.ts';
 
 interface ContactSectionProps {
@@ -7,6 +8,7 @@ interface ContactSectionProps {
 }
 
 export const ContactSection: React.FC<ContactSectionProps> = ({ onSpeakWithAltea }) => {
+  const { t, isRtl } = useLanguage();
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
 
@@ -30,18 +32,15 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ onSpeakWithAltea
             {/* Left Column: Opportunity & Pitch */}
             <div className="lg:col-span-7 space-y-6">
               <span className="text-xs uppercase tracking-[0.25em] font-medium text-[#8C7A62]">
-                Opportunité & Disponibilité · Stage 2027
+                {t.contact.kicker}
               </span>
 
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-normal text-[#1F1C18] tracking-tight leading-tight">
-                À la Recherche d&apos;un Stage de 6 Mois à Partir de Janvier 2027
+                {t.contact.title}
               </h2>
 
               <p className="text-base text-[#524B40] font-light leading-relaxed">
-                Particulièrement intéressée par les métiers des médias, de la communication, des
-                relations presse et du marketing digital dans l&apos;univers du prestige et des marques de
-                luxe. Je souhaite mettre mon dynamisme, mon empathie client et ma rigueur au service de
-                vos équipes.
+                {t.contact.description}
               </p>
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -49,86 +48,100 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ onSpeakWithAltea
                   onClick={onSpeakWithAltea}
                   className="px-6 py-3.5 bg-[#1F1C18] text-[#FAF8F4] text-xs uppercase tracking-widest font-medium hover:bg-[#38332C] transition-colors flex items-center gap-2"
                 >
-                  <span>Poser une question à Altea</span>
-                  <ArrowUpRight className="w-4 h-4" />
+                  <span>{t.contact.btnSpeak}</span>
+                  <ArrowUpRight className={`w-4 h-4 ${isRtl ? 'rotate-[-90deg]' : ''}`} />
                 </button>
 
                 <a
                   href={`mailto:${IMENE_PROFILE.email}?subject=Opportunité de Stage 2027 — Imene Khodja Bach`}
                   className="px-6 py-3.5 border border-[#1F1C18] text-[#1F1C18] text-xs uppercase tracking-widest font-medium hover:bg-[#FAF8F4] transition-colors"
                 >
-                  Envoyer un Email Direct
+                  {t.contact.btnEmail}
                 </a>
               </div>
             </div>
 
-            {/* Right Column: Contact Cards */}
+            {/* Right Column: Direct Coordinates Card */}
             <div className="lg:col-span-5 bg-[#FAF8F4] border border-[#ECE5D8] p-6 sm:p-8 space-y-6">
-              <div className="text-xs uppercase tracking-widest font-semibold text-[#8C7A62] pb-3 border-b border-[#ECE5D8]">
-                Coordonnées Officielles
+              {/* Email direct */}
+              <div className="flex items-start justify-between gap-4 pb-5 border-b border-[#E8DFC8]">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-white border border-[#ECE5D8] flex items-center justify-center text-[#8C7A62] shrink-0">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-widest text-[#8C7A62] font-semibold">
+                      Email
+                    </span>
+                    <a
+                      href={`mailto:${IMENE_PROFILE.email}`}
+                      className="block text-sm font-medium text-[#1F1C18] hover:underline"
+                    >
+                      {IMENE_PROFILE.email}
+                    </a>
+                  </div>
+                </div>
+                <button
+                  onClick={handleCopyEmail}
+                  className="text-xs text-[#8C7A62] hover:text-[#1F1C18] p-1.5 transition-colors"
+                  title="Copy email"
+                >
+                  {copiedEmail ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                </button>
               </div>
 
-              {/* Email Card */}
-              <div className="space-y-1">
-                <div className="text-[11px] uppercase tracking-wider text-[#8C7A62] flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>Adresse Email</span>
+              {/* Téléphone direct */}
+              <div className="flex items-start justify-between gap-4 pb-5 border-b border-[#E8DFC8]">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-white border border-[#ECE5D8] flex items-center justify-center text-[#8C7A62] shrink-0">
+                    <Phone className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-widest text-[#8C7A62] font-semibold">
+                      {t.contact.phoneTitle}
+                    </span>
+                    <a
+                      href={`tel:${IMENE_PROFILE.phone}`}
+                      className="block text-sm font-medium text-[#1F1C18] hover:underline tabular-nums"
+                      dir="ltr"
+                    >
+                      {IMENE_PROFILE.phone}
+                    </a>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between gap-2 pt-1">
-                  <a
-                    href={`mailto:${IMENE_PROFILE.email}`}
-                    className="font-serif text-lg sm:text-xl text-[#1F1C18] hover:text-[#8C7A62] transition-colors truncate"
-                  >
-                    {IMENE_PROFILE.email}
-                  </a>
-                  <button
-                    onClick={handleCopyEmail}
-                    className="p-1.5 text-[#736859] hover:text-[#1F1C18] transition-colors"
-                    title="Copier l'email"
-                  >
-                    {copiedEmail ? <Check className="w-4 h-4 text-[#2A8550]" /> : <Copy className="w-4 h-4" />}
-                  </button>
+                <button
+                  onClick={handleCopyPhone}
+                  className="text-xs text-[#8C7A62] hover:text-[#1F1C18] p-1.5 transition-colors"
+                  title="Copy phone"
+                >
+                  {copiedPhone ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {/* Localisation */}
+              <div className="flex items-start gap-3 pb-5 border-b border-[#E8DFC8]">
+                <div className="w-8 h-8 rounded-full bg-white border border-[#ECE5D8] flex items-center justify-center text-[#8C7A62] shrink-0">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase tracking-widest text-[#8C7A62] font-semibold">
+                    {t.contact.locationTitle}
+                  </span>
+                  <p className="text-sm font-medium text-[#1F1C18]">{t.contact.locationSub}</p>
                 </div>
               </div>
 
-              {/* Phone Card */}
-              <div className="space-y-1 pt-4 border-t border-[#ECE5D8]">
-                <div className="text-[11px] uppercase tracking-wider text-[#8C7A62] flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Téléphone</span>
+              {/* Disponibilité */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-white border border-[#ECE5D8] flex items-center justify-center text-[#8C7A62] shrink-0">
+                  <Calendar className="w-4 h-4" />
                 </div>
-                <div className="flex items-center justify-between gap-2 pt-1">
-                  <a
-                    href={`tel:${IMENE_PROFILE.phone.replace(/\s+/g, '')}`}
-                    className="font-serif text-lg sm:text-xl text-[#1F1C18] hover:text-[#8C7A62] transition-colors tabular-nums"
-                  >
-                    {IMENE_PROFILE.phone}
-                  </a>
-                  <button
-                    onClick={handleCopyPhone}
-                    className="p-1.5 text-[#736859] hover:text-[#1F1C18] transition-colors"
-                    title="Copier le numéro"
-                  >
-                    {copiedPhone ? <Check className="w-4 h-4 text-[#2A8550]" /> : <Copy className="w-4 h-4" />}
-                  </button>
+                <div>
+                  <span className="text-[10px] uppercase tracking-widest text-[#8C7A62] font-semibold">
+                    {t.contact.internshipTitle}
+                  </span>
+                  <p className="text-sm font-medium text-[#1F1C18]">{t.contact.internshipSub}</p>
                 </div>
-              </div>
-
-              {/* Location Card */}
-              <div className="space-y-1 pt-4 border-t border-[#ECE5D8]">
-                <div className="text-[11px] uppercase tracking-wider text-[#8C7A62] flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>Localisation</span>
-                </div>
-                <div className="font-serif text-lg sm:text-xl text-[#1F1C18] pt-1">
-                  {IMENE_PROFILE.location}
-                </div>
-              </div>
-
-              {/* Availability Notice */}
-              <div className="pt-4 border-t border-[#ECE5D8] flex items-center gap-2 text-xs text-[#6B6152]">
-                <Calendar className="w-3.5 h-3.5 text-[#8C7A62] shrink-0" />
-                <span>Disponible pour entretiens et opportunités dès à présent.</span>
               </div>
             </div>
           </div>

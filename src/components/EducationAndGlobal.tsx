@@ -1,23 +1,24 @@
 import React from 'react';
 import { GraduationCap, Globe2, HeartHandshake } from 'lucide-react';
-import { IMENE_PROFILE } from '../data/imeneProfile.ts';
+import { useLanguage } from '../context/LanguageContext.tsx';
 import archImg from '../assets/images/monaco_paris_architecture_1791558677423.jpg';
 
 export const EducationAndGlobal: React.FC = () => {
+  const { t } = useLanguage();
+
   return (
     <section id="education" className="py-16 sm:py-20 border-b border-[#ECE5D8] bg-[#FAF8F4]">
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
         {/* Section Header */}
         <div className="max-w-3xl mb-12">
           <span className="text-xs uppercase tracking-[0.25em] font-medium text-[#8C7A62]">
-            Parcours Académique & Dimension Internationale
+            {t.education.kicker}
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-normal text-[#1F1C18] mt-2 mb-4 tracking-tight">
-            Formation d&apos;Excellence & Échanges Européens
+            {t.education.title}
           </h2>
           <p className="text-sm sm:text-base text-[#575045] font-light leading-relaxed">
-            Un cursus structuré au sein de l&apos;ESCE Grande École à Paris, enrichi par des immersions
-            académiques de premier plan à Monaco, Barcelone et Londres.
+            {t.education.description}
           </p>
         </div>
 
@@ -27,10 +28,10 @@ export const EducationAndGlobal: React.FC = () => {
           <div className="lg:col-span-6 space-y-8">
             <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-[#8C7A62] pb-3 border-b border-[#ECE5D8]">
               <GraduationCap className="w-4 h-4 text-[#8C7A62]" />
-              <span>Diplômes & Grande École</span>
+              <span>{t.education.degreesHeader}</span>
             </div>
 
-            {IMENE_PROFILE.education.map((edu, idx) => (
+            {t.education.degrees.map((edu, idx) => (
               <div key={idx} className="bg-white p-6 border border-[#ECE5D8] shadow-xs">
                 <div className="flex justify-between items-start mb-2">
                   <span className="text-xs uppercase tracking-wider font-medium text-[#8C7A62]">
@@ -55,31 +56,29 @@ export const EducationAndGlobal: React.FC = () => {
             <div className="bg-white p-6 border border-[#ECE5D8] shadow-xs">
               <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-medium text-[#8C7A62] mb-2">
                 <HeartHandshake className="w-4 h-4 text-[#8C7A62]" />
-                <span>Engagement Social & Bénévolat</span>
+                <span>{t.education.volunteeringHeader}</span>
               </div>
               <div className="flex justify-between items-start mb-1">
                 <h3 className="font-serif text-xl font-normal text-[#1F1C18]">
-                  Mentor Jeunesse & Bénévole — AFEV Paris
+                  {t.education.volunteeringTitle}
                 </h3>
-                <span className="text-xs text-[#7A6E5D] font-mono">01/2022 – 05/2022</span>
+                <span className="text-xs text-[#7A6E5D] font-mono">{t.education.volunteeringPeriod}</span>
               </div>
               <p className="text-xs text-[#5C5346] leading-relaxed mt-2">
-                Accompagnement scolaire individualisé d&apos;une jeune élève (lecture, écriture) et
-                organisation de sorties culturelles (musées, expositions d&apos;art à Paris) pour stimuler
-                son ouverture d&apos;esprit et son éveil culturel.
+                {t.education.volunteeringDesc}
               </p>
             </div>
           </div>
 
-          {/* Right Column: International Academic Hubs & Architecture Visual (6 cols) */}
+          {/* Right Column: International Academic Hubs & Visual */}
           <div className="lg:col-span-6 space-y-8">
             <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-[#8C7A62] pb-3 border-b border-[#ECE5D8]">
               <Globe2 className="w-4 h-4 text-[#8C7A62]" />
-              <span>Immersions Internationales</span>
+              <span>{t.education.internationalHeader}</span>
             </div>
 
             <div className="space-y-4">
-              {IMENE_PROFILE.international.map((exp, idx) => (
+              {t.education.international.map((exp, idx) => (
                 <div key={idx} className="bg-white p-5 border border-[#ECE5D8] shadow-xs">
                   <div className="flex justify-between items-start">
                     <div>
@@ -103,7 +102,7 @@ export const EducationAndGlobal: React.FC = () => {
               <div className="relative aspect-16/9 overflow-hidden bg-[#F0EBE1]">
                 <img
                   src={archImg}
-                  alt="Paris & Monaco — Luxury Architectural Aesthetics"
+                  alt={t.education.archCaptionTitle}
                   className="w-full h-full object-cover object-center"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
@@ -112,8 +111,12 @@ export const EducationAndGlobal: React.FC = () => {
                 />
               </div>
               <div className="pt-2 text-xs text-[#786E5E] flex justify-between items-center">
-                <span className="font-serif italic text-sm text-[#1F1C18]">Paris · Monaco · Barcelone · Londres</span>
-                <span className="uppercase tracking-widest text-[10px]">Ouverture Multiculturelle</span>
+                <span className="font-serif italic text-sm text-[#1F1C18]">
+                  {t.education.archCaptionTitle}
+                </span>
+                <span className="uppercase tracking-widest text-[10px]">
+                  {t.education.archCaptionSub}
+                </span>
               </div>
             </div>
           </div>

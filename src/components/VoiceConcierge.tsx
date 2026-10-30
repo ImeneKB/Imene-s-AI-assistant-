@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, RefreshCw, Send, Sparkles, AlertCircle } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, RefreshCw, Send, Sparkles } from 'lucide-react';
 import { pcmFloat32ToInt16Base64, PcmStreamPlayer } from '../utils/audioUtils.ts';
 import { generateAlteaResponse, speakWithBrowserSpeech, detectLanguage } from '../utils/alteaConcierge.ts';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 interface Message {
   id: string;
@@ -12,52 +13,26 @@ interface Message {
   language?: 'fr' | 'en' | 'ar';
 }
 
-const PRESET_PROMPTS = [
-  {
-    lang: 'fr',
-    label: 'Présentation & Stage',
-    query: 'Bonjour Altea, pouvez-vous me présenter Imene Khodja Bach et ses objectifs pour son stage de 2027 ?',
-  },
-  {
-    lang: 'fr',
-    label: 'Impact chez Typology',
-    query: 'Comment Imene a-t-elle amélioré la satisfaction client de 10% et réduit le temps de réponse de 30% chez Typology ?',
-  },
-  {
-    lang: 'en',
-    label: 'Luxury Marketing Philosophy',
-    query: 'Altea, what is Imene’s philosophy on luxury consumer experience and prestige brand moderation?',
-  },
-  {
-    lang: 'en',
-    label: 'Monaco & Global Journey',
-    query: 'Tell me about Imene’s international academic background across Monaco, Barcelona, and London.',
-  },
-  {
-    lang: 'ar',
-    label: 'نبذة عن إيمان وخبرتها',
-    query: 'مرحباً التيا، حدثيني باللغة العربية عن إيمان خوجة باخ وخبرتها في مجال التسويق الفاخر والعلاقات العامة.',
-  },
-];
-
 export const VoiceConcierge: React.FC<{
   isLiveActive: boolean;
   setIsLiveActive: (active: boolean) => void;
 }> = ({ isLiveActive, setIsLiveActive }) => {
+  const { language, t, isRtl } = useLanguage();
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       sender: 'altea',
-      text: "Bonjour. Je suis Altea, l'assistante exécutive représentant Imene Khodja Bach. I converse fluently in French, English, and Arabic (العربية). Comment puis-je vous accompagner dans la découverte de son parcours dans la communication et le marketing du luxe ?",
+      text: t.voice.welcomeMsg,
       timestamp: 'Just now',
-      language: 'fr',
+      language: language,
     },
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [statusText, setStatusText] = useState<string>('Ready for dialogue');
+  const [statusText, setStatusText] = useState<string>(t.voice.statusReady);
   const [activeLangTab, setActiveLangTab] = useState<'all' | 'fr' | 'en' | 'ar'>('all');
   const [audioMuted, setAudioMuted] = useState(false);
 
@@ -77,6 +52,25 @@ export const VoiceConcierge: React.FC<{
   // Scroll anchor for messages
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  // Synchronize initial welcome message when user changes language
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].id === 'welcome') {
+        return [
+          {
+            id: 'welcome',
+            sender: 'altea',
+            text: t.voice.welcomeMsg,
+            timestamp: 'Just now',
+            language: language,
+          },
+        ];
+      }
+      return prev;
+    });
+    setStatusText(t.voice.statusReady);
+  }, [language, t.voice.welcomeMsg, t.voice.statusReady]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading, isSpeaking]);
@@ -87,6 +81,13 @@ export const VoiceConcierge: React.FC<{
       stopLiveSession();
       if (currentAudioElementRef.current) {
         currentAudioElementRef.current.pause();
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // ignore
+        }
       }
     };
   }, []);
@@ -103,7 +104,7 @@ export const VoiceConcierge: React.FC<{
   // Handle Live API Session
   const startLiveSession = async () => {
     try {
-      setStatusText('Connecting to Gemini 3.8 Live...');
+      setStatusText('Connecting to Gemini Live...');
       pcmPlayerRef.current.stop();
 
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -142,7 +143,7 @@ export const VoiceConcierge: React.FC<{
 
           source.connect(processor);
           processor.connect(audioCtx.destination);
-          setStatusText('Listening live · Speak in French, English, or Arabic');
+          setStatusText(t.voice.statusListening);
           setIsLiveActive(true);
         } catch (micErr: any) {
           console.error('Mic access error:', micErr);
@@ -155,17 +156,17 @@ export const VoiceConcierge: React.FC<{
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'ready') {
-            setStatusText('Gemini 3.8 Live Connected · Speak now');
+            setStatusText('Gemini Live Connected · Speak now');
           } else if (data.type === 'audio' && data.audio) {
             if (!audioMuted) {
               setIsSpeaking(true);
-              setStatusText('Altea is speaking (Live)...');
+              setStatusText(t.voice.statusSpeaking);
               pcmPlayerRef.current.playChunk(data.audio);
             }
           } else if (data.type === 'interrupted') {
             pcmPlayerRef.current.stop();
             setIsSpeaking(false);
-            setStatusText('Listening live...');
+            setStatusText(t.voice.statusListening);
           } else if (data.type === 'error') {
             setStatusText(`Notice: ${data.error}`);
           }
@@ -175,18 +176,18 @@ export const VoiceConcierge: React.FC<{
       };
 
       ws.onclose = () => {
-        setStatusText('Live session disconnected');
+        setStatusText(t.voice.statusReady);
         stopLiveSession();
       };
 
       ws.onerror = (err) => {
         console.error('Live WS error:', err);
-        setStatusText('Live session error');
+        setStatusText(t.voice.statusReady);
         stopLiveSession();
       };
     } catch (err: any) {
       console.error('Live connect failed:', err);
-      setStatusText('Could not connect to Live service');
+      setStatusText(t.voice.statusReady);
       stopLiveSession();
     }
   };
@@ -227,7 +228,7 @@ export const VoiceConcierge: React.FC<{
     pcmPlayerRef.current.stop();
     setIsSpeaking(false);
     setIsLiveActive(false);
-    setStatusText('Live session ended');
+    setStatusText(t.voice.statusReady);
   };
 
   // Play audio response from base64 WAV
@@ -243,15 +244,15 @@ export const VoiceConcierge: React.FC<{
       const audio = new Audio(`data:audio/wav;base64,${base64Audio}`);
       currentAudioElementRef.current = audio;
       setIsSpeaking(true);
-      setStatusText('Altea is speaking...');
+      setStatusText(t.voice.statusSpeaking);
 
       audio.onended = () => {
         setIsSpeaking(false);
-        setStatusText('Ready for dialogue');
+        setStatusText(t.voice.statusReady);
       };
       audio.onerror = () => {
         setIsSpeaking(false);
-        setStatusText('Ready for dialogue');
+        setStatusText(t.voice.statusReady);
       };
 
       audio.play().catch((err) => {
@@ -264,7 +265,7 @@ export const VoiceConcierge: React.FC<{
     }
   };
 
-  // Send query via Executive Voice API (Gemini + autonomous knowledge engine fallback)
+  // Send query via Executive Voice API (Gemini with autonomous knowledge engine fallback)
   const handleSendMessage = async (textToSend: string) => {
     if (!textToSend.trim() || isLoading) return;
 
@@ -280,7 +281,7 @@ export const VoiceConcierge: React.FC<{
     setMessages((prev) => [...prev, userMsg]);
     setInputText('');
     setIsLoading(true);
-    setStatusText('Altea is synthesizing response...');
+    setStatusText(t.voice.statusSynthesizing);
 
     // Build history for context
     const history = messages.slice(-6).map((m) => ({
@@ -336,21 +337,21 @@ export const VoiceConcierge: React.FC<{
         playWavAudio(replyAudioBase64);
       } else if (!audioMuted) {
         setIsSpeaking(true);
-        setStatusText('Altea is speaking...');
+        setStatusText(t.voice.statusSpeaking);
         speakWithBrowserSpeech(
           replyText,
           replyLang,
           () => {
             setIsSpeaking(true);
-            setStatusText('Altea is speaking...');
+            setStatusText(t.voice.statusSpeaking);
           },
           () => {
             setIsSpeaking(false);
-            setStatusText('Ready for dialogue');
+            setStatusText(t.voice.statusReady);
           }
         );
       } else {
-        setStatusText('Ready for dialogue');
+        setStatusText(t.voice.statusReady);
       }
     } catch (err: any) {
       console.error('Message processing error:', err);
@@ -365,7 +366,7 @@ export const VoiceConcierge: React.FC<{
           language: fallbackResult.language,
         },
       ]);
-      setStatusText('Ready for dialogue');
+      setStatusText(t.voice.statusReady);
     } finally {
       setIsLoading(false);
     }
@@ -379,13 +380,13 @@ export const VoiceConcierge: React.FC<{
       if (SpeechRecognitionClass) {
         const recognition = new SpeechRecognitionClass();
         recognitionRef.current = recognition;
-        recognition.lang = activeLangTab === 'ar' ? 'ar-SA' : activeLangTab === 'en' ? 'en-US' : 'fr-FR';
+        recognition.lang = language === 'ar' ? 'ar-SA' : language === 'en' ? 'en-US' : 'fr-FR';
         recognition.continuous = false;
         recognition.interimResults = false;
 
         recognition.onstart = () => {
           setIsRecording(true);
-          setStatusText('Listening... Speak now, then click mic to stop');
+          setStatusText(t.voice.statusListening);
         };
 
         recognition.onresult = (event: any) => {
@@ -393,14 +394,14 @@ export const VoiceConcierge: React.FC<{
           if (transcript && transcript.trim()) {
             handleSendMessage(transcript.trim());
           } else {
-            setStatusText('Voice not recognized. Please retry or type.');
+            setStatusText(t.voice.statusReady);
           }
         };
 
         recognition.onerror = (event: any) => {
           console.warn('Speech recognition notice:', event.error);
           setIsRecording(false);
-          setStatusText('Ready for dialogue');
+          setStatusText(t.voice.statusReady);
         };
 
         recognition.onend = () => {
@@ -432,7 +433,7 @@ export const VoiceConcierge: React.FC<{
         reader.onloadend = async () => {
           const base64Audio = (reader.result as string).split(',')[1];
           if (base64Audio) {
-            setStatusText('Transcribing your voice...');
+            setStatusText(t.voice.statusSynthesizing);
             setIsLoading(true);
             try {
               const transRes = await fetch('/api/transcribe', {
@@ -447,12 +448,12 @@ export const VoiceConcierge: React.FC<{
               if (transData.text && transData.text.trim()) {
                 await handleSendMessage(transData.text.trim());
               } else {
-                setStatusText('Voice not recognized. Please retry or type.');
+                setStatusText(t.voice.statusReady);
                 setIsLoading(false);
               }
             } catch (err) {
               console.error('Transcription failed:', err);
-              setStatusText('Transcription error');
+              setStatusText(t.voice.statusReady);
               setIsLoading(false);
             }
           }
@@ -461,7 +462,7 @@ export const VoiceConcierge: React.FC<{
 
       mediaRecorder.start();
       setIsRecording(true);
-      setStatusText('Listening... Speak now, then click to send');
+      setStatusText(t.voice.statusListening);
     } catch (err) {
       console.error('Mic access error:', err);
       setStatusText('Microphone permission required');
@@ -483,7 +484,7 @@ export const VoiceConcierge: React.FC<{
     }
   };
 
-  const filteredPrompts = PRESET_PROMPTS.filter((p) =>
+  const filteredPrompts = t.voice.presetPrompts.filter((p) =>
     activeLangTab === 'all' ? true : p.lang === activeLangTab
   );
 
@@ -493,24 +494,22 @@ export const VoiceConcierge: React.FC<{
         {/* Header kicker and editorial title */}
         <div className="text-center max-w-3xl mx-auto mb-10">
           <span className="text-xs uppercase tracking-[0.25em] font-medium text-[#8C7A62]">
-            Executive Voice Concierge · Live & Interactive
+            {t.voice.kicker}
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-normal text-[#1F1C18] mt-2 mb-4 tracking-tight">
-            Converse with Altea
+            {t.voice.title}
           </h2>
           <p className="text-sm sm:text-base text-[#575045] font-light leading-relaxed">
-            Representing Imene Khodja Bach with poise, depth, and precision. Fluent in French,
-            English, and Arabic with calm, authentic phonetic mastery.
+            {t.voice.subtitle}
           </p>
         </div>
 
-        {/* Assistant Main Console: 2-column layout */}
+        {/* Assistant Main Console */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Visual Aura, State, and Live Controls (5 cols) */}
+          {/* Left Column: Visual Aura & Controls (5 cols) */}
           <div className="lg:col-span-5 bg-white border border-[#ECE5D8] p-6 sm:p-8 flex flex-col items-center text-center shadow-xs">
             {/* Visual Minimalist Audio Orb */}
             <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center my-4">
-              {/* Outer atmospheric aura rings */}
               <div
                 className={`absolute inset-0 rounded-full border border-[#DCD3C2] transition-all duration-700 ${
                   isSpeaking
@@ -526,7 +525,6 @@ export const VoiceConcierge: React.FC<{
                 }`}
               />
 
-              {/* Core Minimalist Sphere */}
               <div
                 className={`w-32 h-32 sm:w-36 sm:h-36 rounded-full flex flex-col items-center justify-center transition-all duration-500 shadow-md ${
                   isSpeaking
@@ -541,7 +539,7 @@ export const VoiceConcierge: React.FC<{
                 <Sparkles className="w-6 h-6 mb-1 opacity-80" />
                 <span className="font-serif text-lg tracking-wider font-medium">ALTEA</span>
                 <span className="text-[10px] font-sans uppercase tracking-widest text-[#7C7162]">
-                  {isSpeaking ? 'Speaking' : isLiveActive ? 'Live 3.8' : isRecording ? 'Listening' : 'Ready'}
+                  {isSpeaking ? 'Speaking' : isLiveActive ? 'Live' : isRecording ? 'Listening' : 'Ready'}
                 </span>
               </div>
             </div>
@@ -562,9 +560,8 @@ export const VoiceConcierge: React.FC<{
               <span>{statusText}</span>
             </div>
 
-            {/* Dual Interaction Mode Switch / Buttons */}
+            {/* Buttons */}
             <div className="w-full space-y-3">
-              {/* Primary: Gemini 3.8 Live API Toggle */}
               <button
                 onClick={() => {
                   if (isLiveActive) {
@@ -580,10 +577,9 @@ export const VoiceConcierge: React.FC<{
                 }`}
               >
                 <Mic className="w-4 h-4" />
-                {isLiveActive ? 'End Live API Session' : 'Start Gemini 3.8 Live Stream'}
+                {isLiveActive ? t.header.liveButton.active : t.header.liveButton.idle}
               </button>
 
-              {/* Secondary: Push-to-Talk or Mute Audio toggle */}
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onMouseDown={startRecording}
@@ -598,10 +594,10 @@ export const VoiceConcierge: React.FC<{
                       ? 'bg-[#8F2D2D] text-white border-[#8F2D2D]'
                       : 'bg-white hover:bg-[#F9F7F2] text-[#423C34]'
                   }`}
-                  title="Hold to speak, release to send"
+                  title="Click or hold to speak"
                 >
                   {isRecording ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-                  <span>{isRecording ? 'Listening...' : 'Hold to Speak'}</span>
+                  <span>{isRecording ? 'Listening...' : 'Voice Input'}</span>
                 </button>
 
                 <button
@@ -632,12 +628,12 @@ export const VoiceConcierge: React.FC<{
             </div>
           </div>
 
-          {/* Right Column: Interactive Transcript & Prompt Starters (7 cols) */}
+          {/* Right Column: Dialogue Transcript & Input (7 cols) */}
           <div className="lg:col-span-7 bg-white border border-[#ECE5D8] p-6 sm:p-8 flex flex-col shadow-xs min-h-[540px]">
             {/* Language filter for sample questions */}
             <div className="flex items-center justify-between pb-4 border-b border-[#ECE5D8] mb-4">
               <div className="text-xs uppercase tracking-widest font-medium text-[#7A6E5D]">
-                Suggested Questions
+                {t.voice.presetsLabel}
               </div>
               <div className="flex items-center gap-1 text-xs">
                 {(['all', 'fr', 'en', 'ar'] as const).map((lang) => (
@@ -650,7 +646,7 @@ export const VoiceConcierge: React.FC<{
                         : 'text-[#6F6456] hover:text-[#1F1C18]'
                     }`}
                   >
-                    {lang === 'all' ? 'All' : lang.toUpperCase()}
+                    {lang === 'all' ? t.voice.tabs.all : lang.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -663,7 +659,7 @@ export const VoiceConcierge: React.FC<{
                   key={idx}
                   onClick={() => handleSendMessage(item.query)}
                   disabled={isLoading}
-                  className="text-left text-xs px-3 py-1.5 bg-[#FAF8F4] border border-[#E4DC CE] border-[#E2D9C8] hover:border-[#9E7D4B] hover:bg-white text-[#423C34] transition-colors leading-snug"
+                  className="text-left text-xs px-3 py-1.5 bg-[#FAF8F4] border border-[#E2D9C8] hover:border-[#9E7D4B] hover:bg-white text-[#423C34] transition-colors leading-snug"
                 >
                   <span className="text-[10px] uppercase tracking-wider text-[#8C7A62] block mb-0.5">
                     {item.label}
@@ -698,11 +694,13 @@ export const VoiceConcierge: React.FC<{
                         : 'bg-[#FBF9F5] border border-[#ECE5D8] text-[#24211E]'
                     }`}
                   >
-                    <p className={`whitespace-pre-wrap ${msg.language === 'ar' ? 'font-arabic text-base text-right' : ''}`} dir={msg.language === 'ar' ? 'rtl' : 'ltr'}>
+                    <p
+                      className={`whitespace-pre-wrap ${msg.language === 'ar' ? 'font-arabic text-base text-right' : ''}`}
+                      dir={msg.language === 'ar' ? 'rtl' : 'ltr'}
+                    >
                       {msg.text}
                     </p>
 
-                    {/* Audio replay button for Altea messages */}
                     {msg.sender === 'altea' && msg.audioUrl && (
                       <div className="mt-2.5 pt-2 border-t border-[#EAE3D5] flex items-center gap-2">
                         <button
@@ -721,7 +719,7 @@ export const VoiceConcierge: React.FC<{
               {isLoading && (
                 <div className="flex items-center gap-2 text-xs text-[#8C7A62] italic py-2">
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Altea is composing answer...</span>
+                  <span>{t.voice.statusSynthesizing}</span>
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -739,7 +737,7 @@ export const VoiceConcierge: React.FC<{
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Ask Altea about Imene's experience at Typology, skills, Monaco..."
+                placeholder={t.voice.placeholder}
                 className="flex-1 px-4 py-2.5 text-sm bg-[#FAF8F4] border border-[#DCD3C2] focus:border-[#1F1C18] focus:outline-hidden text-[#1F1C18] placeholder-[#9E9486] transition-colors"
                 disabled={isLoading}
               />
@@ -748,8 +746,8 @@ export const VoiceConcierge: React.FC<{
                 disabled={isLoading || !inputText.trim()}
                 className="px-5 py-2.5 bg-[#1F1C18] hover:bg-[#38332C] text-[#FAF8F4] text-xs uppercase tracking-widest font-medium transition-colors disabled:opacity-40 flex items-center gap-1.5"
               >
-                <span>Send</span>
-                <Send className="w-3.5 h-3.5" />
+                <span>{t.voice.btnSend}</span>
+                <Send className={`w-3.5 h-3.5 ${isRtl ? 'rotate-180' : ''}`} />
               </button>
             </form>
           </div>

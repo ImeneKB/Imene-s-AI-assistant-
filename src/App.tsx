@@ -7,13 +7,14 @@ import { EducationAndGlobal } from './components/EducationAndGlobal.tsx';
 import { CompetenciesSection } from './components/CompetenciesSection.tsx';
 import { ContactSection } from './components/ContactSection.tsx';
 import { Footer } from './components/Footer.tsx';
+import { LanguageProvider, useLanguage } from './context/LanguageContext.tsx';
 
-export default function App() {
+function MainApp() {
   const [isLiveActive, setIsLiveActive] = useState(false);
+  const { isRtl } = useLanguage();
 
   const handleStartVoice = () => {
     setIsLiveActive(true);
-    // Smooth scroll to assistant console
     const el = document.getElementById('assistant');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
@@ -28,15 +29,20 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F4] text-[#211F1D] flex flex-col font-sans selection:bg-[#EAE1D2] selection:text-[#181614]">
-      {/* Top Bar Contract compliant navigation */}
+    <div
+      className={`min-h-screen bg-[#FAF8F4] text-[#211F1D] flex flex-col selection:bg-[#EAE1D2] selection:text-[#181614] ${
+        isRtl ? 'font-serif' : 'font-sans'
+      }`}
+      dir={isRtl ? 'rtl' : 'ltr'}
+    >
+      {/* Top Bar with Language Switcher */}
       <Header onStartVoice={handleStartVoice} isLiveActive={isLiveActive} />
 
       <main className="flex-1">
         {/* Editorial Split Hero Section & Full-Width KPIs */}
         <HeroSection onSpeakClick={handleScrollToAssistant} />
 
-        {/* Central Voice Concierge Experience (Gemini 3.8 Live + Flash Lite TTS) */}
+        {/* Central Voice Concierge Experience */}
         <VoiceConcierge isLiveActive={isLiveActive} setIsLiveActive={setIsLiveActive} />
 
         {/* In-depth Typology Case Study */}
@@ -55,5 +61,13 @@ export default function App() {
       {/* Refined Minimalist Footer */}
       <Footer />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <MainApp />
+    </LanguageProvider>
   );
 }
