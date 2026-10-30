@@ -84,8 +84,15 @@ export interface TranslationContent {
     volunteeringPeriod: string;
     volunteeringDesc: string;
     internationalHeader: string;
-    archCaptionTitle: string;
-    archCaptionSub: string;
+    globalVisionTitle: string;
+    globalVisionSubtitle: string;
+    globalVisionQuote: string;
+    globalBadge: string;
+    globalPillars: {
+      title: string;
+      subtitle: string;
+      desc: string;
+    }[];
     degrees: {
       degree: string;
       institution: string;
@@ -290,8 +297,27 @@ export const translations: Record<Language, TranslationContent> = {
       volunteeringPeriod: '01/2022 – 05/2022',
       volunteeringDesc: 'Accompagnement scolaire individualisé d’une jeune élève (lecture, écriture) et organisation de sorties culturelles (musées, expositions d’art à Paris) pour stimuler son ouverture d’esprit et son éveil culturel.',
       internationalHeader: 'Immersions Internationales',
-      archCaptionTitle: 'Paris · Monaco · Barcelone · Londres',
-      archCaptionSub: 'Ouverture Multiculturelle',
+      globalVisionTitle: 'Atouts & Synergie Internationale',
+      globalVisionSubtitle: 'Mobilité Européenne',
+      globalVisionQuote: 'Sublimer l’aura d’une Maison exige de comprendre intimement les cultures pour tisser des récits universels et authentiques.',
+      globalBadge: 'Passerelle Culturelle Trilingue',
+      globalPillars: [
+        {
+          title: 'Monaco & Paris',
+          subtitle: 'Codes du Très Haut de Gamme',
+          desc: 'Immersion au cœur des épicentres mondiaux de l’art de vivre, de l’hospitalité d’exception et du luxe contemporain.',
+        },
+        {
+          title: 'Barcelone & Londres',
+          subtitle: 'Négociation & Bilinguisme Immersif',
+          desc: 'Pratique quotidienne de la communication globale en langue anglaise (TOEIC 920) et compréhension des marchés européens.',
+        },
+        {
+          title: 'Aisance Interculturelle',
+          subtitle: 'Marchés Europe & Moyen-Orient',
+          desc: 'Trilinguisme naturel (Français, Arabe natifs, Anglais bilingue) pour dialoguer avec une clientèle internationale raffinée.',
+        },
+      ],
       degrees: [
         {
           degree: 'Master en Communication, Luxe & Marketing du Prestige',
@@ -530,8 +556,27 @@ export const translations: Record<Language, TranslationContent> = {
       volunteeringPeriod: '01/2022 – 05/2022',
       volunteeringDesc: 'Individualized academic mentoring for a young student (reading, writing) and organizing cultural outings to Parisian museums and art exhibitions to stimulate curiosity and cultural enrichment.',
       internationalHeader: 'International Immersions',
-      archCaptionTitle: 'Paris · Monaco · Barcelona · London',
-      archCaptionSub: 'Multicultural Horizon',
+      globalVisionTitle: 'Global Acuity & Multicultural Synergy',
+      globalVisionSubtitle: 'European Mobility',
+      globalVisionQuote: 'Elevating a prestige Maison requires deep cultural resonance to craft authentic, globally meaningful brand narratives.',
+      globalBadge: 'Trilingual Cultural Bridge',
+      globalPillars: [
+        {
+          title: 'Monaco & Paris',
+          subtitle: 'Prestige & Ultra-Luxury Codes',
+          desc: 'Immersion within world-leading hubs of French art de vivre, fine hospitality, and high luxury storytelling.',
+        },
+        {
+          title: 'Barcelona & London',
+          subtitle: 'International Business & Bilingual Fluency',
+          desc: 'Daily immersion in Anglo-Saxon global communications (TOEIC 920) and multicultural market negotiation.',
+        },
+        {
+          title: 'Cross-Cultural Fluency',
+          subtitle: 'Europe & Middle East Markets',
+          desc: 'Native French and Arabic with C1 bilingual English, bridging relationships with international luxury clienteles.',
+        },
+      ],
       degrees: [
         {
           degree: 'Master in Communication, Luxury & Prestige Marketing',
@@ -770,8 +815,27 @@ export const translations: Record<Language, TranslationContent> = {
       volunteeringPeriod: '01/2022 – 05/2022',
       volunteeringDesc: 'مرافقة تعليمية فردية لطالبة لتعزيز مهارات القراءة والكتابة، وتنظيم جولات ثقافية في متاحف ومعارض باريس لتوسيع مداركها الثقافية.',
       internationalHeader: 'الانفتاح الأكاديمي الدولي',
-      archCaptionTitle: 'باريس · موناكو · برشلونة · لندن',
-      archCaptionSub: 'انفتاح متعدد الثقافات',
+      globalVisionTitle: 'رؤية دولية وتكامل ثقافي',
+      globalVisionSubtitle: 'انفتاح أوروبي',
+      globalVisionQuote: '« إبراز تألق الدور الفاخرة يتطلب فهماً عميقاً للثقافات لصياغة سرديات أصيلة تخاطب العالم بأسره. »',
+      globalBadge: 'جسر ثقافي ثلاثي اللغات',
+      globalPillars: [
+        {
+          title: 'موناكو وباريس',
+          subtitle: 'معايير الفخامة والضيافة الراقية',
+          desc: 'معايشة مباشرة في عواصم الذوق الرفيع، الفن الفرنسي، والماركات العالمية الفاخرة.',
+        },
+        {
+          title: 'برشلونة ولندن',
+          subtitle: 'التجارة الدولية وإتقان الإنجليزية',
+          desc: 'ممارسة يومية للتواصل المؤسسي الدولي باللغة الإنجليزية (TOEIC 920) والتفاوض المتعدد الثقافات.',
+        },
+        {
+          title: 'مرونة لغوية وتواصل عالمي',
+          subtitle: 'أسواق أوروبا والشرق الأوسط',
+          desc: 'إتقان فطري للفرنسية والعربية مع إنجليزية متقدمة (C1)، لبناء علاقات وثيقة مع نخبة العملاء الدوليين.',
+        },
+      ],
       degrees: [
         {
           degree: 'ماجستير في الاتصال، الفخامة والتسويق الراقي',

@@ -1,7 +1,6 @@
 import React from 'react';
-import { GraduationCap, Globe2, HeartHandshake } from 'lucide-react';
+import { GraduationCap, Globe2, HeartHandshake, Compass, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.tsx';
-import archImg from '../assets/images/monaco_paris_architecture_1791558677423.jpg';
 
 export const EducationAndGlobal: React.FC = () => {
   const { t } = useLanguage();
@@ -97,25 +96,54 @@ export const EducationAndGlobal: React.FC = () => {
               ))}
             </div>
 
-            {/* Architectural Visual Banner */}
-            <div className="bg-white p-3 border border-[#ECE5D8] shadow-xs">
-              <div className="relative aspect-16/9 overflow-hidden bg-[#F0EBE1]">
-                <img
-                  src={archImg}
-                  alt={t.education.archCaptionTitle}
-                  className="w-full h-full object-cover object-center"
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
-              <div className="pt-2 text-xs text-[#786E5E] flex justify-between items-center">
-                <span className="font-serif italic text-sm text-[#1F1C18]">
-                  {t.education.archCaptionTitle}
+            {/* Global Perspectives & Multicultural Acuity Card */}
+            <div className="bg-white p-6 sm:p-7 border border-[#ECE5D8] shadow-xs relative">
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#ECE5D8]">
+                <div className="flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-[#8C7A62]" />
+                  <span className="text-xs uppercase tracking-widest font-semibold text-[#8C7A62]">
+                    {t.education.globalVisionTitle}
+                  </span>
+                </div>
+                <span className="text-[10px] uppercase tracking-widest font-mono text-[#8C7A62] bg-[#FAF8F4] px-2.5 py-1 border border-[#ECE5D8]">
+                  {t.education.globalVisionSubtitle}
                 </span>
-                <span className="uppercase tracking-widest text-[10px]">
-                  {t.education.archCaptionSub}
+              </div>
+
+              <blockquote className="font-serif italic text-base sm:text-lg text-[#1F1C18] leading-snug mb-5">
+                {t.education.globalVisionQuote}
+              </blockquote>
+
+              <div className="space-y-3.5 pt-2 border-t border-[#F5EFE6]">
+                {t.education.globalPillars.map((pillar, pIdx) => (
+                  <div key={pIdx} className="flex items-start gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#8C7A62] mt-1.5 shrink-0" />
+                    <div>
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-[#1F1C18]">
+                          {pillar.title}
+                        </span>
+                        <span className="text-[11px] text-[#8C7A62] font-mono">
+                          · {pillar.subtitle}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#5C5346] leading-relaxed mt-0.5">
+                        {pillar.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 pt-4 border-t border-[#ECE5D8] flex items-center justify-between text-xs text-[#7A6E5D] flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-[#8C7A62]" />
+                  <span className="text-[11px] uppercase tracking-wider font-medium text-[#1F1C18]">
+                    {t.education.globalBadge}
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono text-[#8C7A62] bg-[#FAF8F4] px-2 py-0.5 border border-[#ECE5D8]">
+                  TOEIC 920 · C1
                 </span>
               </div>
             </div>
