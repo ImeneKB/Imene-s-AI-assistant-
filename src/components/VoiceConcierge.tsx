@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Volume2, VolumeX, Mic, MicOff, RefreshCw, Send, Sparkles, AlertCircle } from 'lucide-react';
 import { pcmFloat32ToInt16Base64, PcmStreamPlayer } from '../utils/audioUtils.ts';
+import { generateAlteaResponse, speakWithBrowserSpeech, detectLanguage } from '../utils/alteaConcierge.ts';
 
 interface Message {
   id: string;
@@ -71,6 +72,7 @@ export const VoiceConcierge: React.FC<{
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const currentAudioElementRef = useRef<HTMLAudioElement | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   // Scroll anchor for messages
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -262,25 +264,17 @@ export const VoiceConcierge: React.FC<{
     }
   };
 
-  // Detect predominant language of text for UI badge
-  const detectLanguage = (text: string): 'ar' | 'fr' | 'en' => {
-    // Check Arabic characters range \u0600-\u06FF
-    if (/[\u0600-\u06FF]/.test(text)) return 'ar';
-    // Check common French words / accents
-    if (/[éèêëàâôûçîï]|\b(je|vous|nous|pour|dans|avec|est|une|des|le|la|les)\b/i.test(text)) return 'fr';
-    return 'en';
-  };
-
-  // Send query via Executive Voice API (Gemini 3.8 Flash + Flash Lite TTS)
+  // Send query via Executive Voice API (Gemini + autonomous knowledge engine fallback)
   const handleSendMessage = async (textToSend: string) => {
     if (!textToSend.trim() || isLoading) return;
 
+    const queryText = textToSend.trim();
     const userMsg: Message = {
       id: Date.now().toString(),
       sender: 'user',
-      text: textToSend.trim(),
+      text: queryText,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      language: detectLanguage(textToSend),
+      language: detectLanguage(queryText),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -288,55 +282,87 @@ export const VoiceConcierge: React.FC<{
     setIsLoading(true);
     setStatusText('Altea is synthesizing response...');
 
+    // Build history for context
+    const history = messages.slice(-6).map((m) => ({
+      role: m.sender === 'user' ? ('user' as const) : ('assistant' as const),
+      content: m.text,
+    }));
+
     try {
-      // Build history for context
-      const history = messages.slice(-6).map((m) => ({
-        role: m.sender === 'user' ? ('user' as const) : ('assistant' as const),
-        content: m.text,
-      }));
+      let replyText: string | null = null;
+      let replyAudioBase64: string | undefined = undefined;
 
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: textToSend,
-          history,
-          speak: !audioMuted,
-        }),
-      });
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: queryText,
+            history,
+            speak: !audioMuted,
+          }),
+        });
 
-      if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.text) {
+            replyText = data.text;
+            replyAudioBase64 = data.audioBase64;
+          }
+        }
+      } catch (networkErr) {
+        // Handled seamlessly via local knowledge engine below
       }
 
-      const data = await res.json();
-      const replyText = data.text || 'Je suis à votre écoute pour toute précision.';
+      // If server returned no text or is unavailable, use autonomous AI knowledge engine
+      if (!replyText) {
+        const engineResult = generateAlteaResponse(queryText, history);
+        replyText = engineResult.text;
+      }
+
+      const replyLang = detectLanguage(replyText);
       const alteaMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'altea',
         text: replyText,
-        audioUrl: data.audioBase64 || undefined,
+        audioUrl: replyAudioBase64,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        language: detectLanguage(replyText),
+        language: replyLang,
       };
 
       setMessages((prev) => [...prev, alteaMsg]);
 
-      if (data.audioBase64 && !audioMuted) {
-        playWavAudio(data.audioBase64);
+      if (replyAudioBase64 && !audioMuted) {
+        playWavAudio(replyAudioBase64);
+      } else if (!audioMuted) {
+        setIsSpeaking(true);
+        setStatusText('Altea is speaking...');
+        speakWithBrowserSpeech(
+          replyText,
+          replyLang,
+          () => {
+            setIsSpeaking(true);
+            setStatusText('Altea is speaking...');
+          },
+          () => {
+            setIsSpeaking(false);
+            setStatusText('Ready for dialogue');
+          }
+        );
       } else {
         setStatusText('Ready for dialogue');
       }
     } catch (err: any) {
-      console.error('Message error:', err);
+      console.error('Message processing error:', err);
+      const fallbackResult = generateAlteaResponse(queryText, history);
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           sender: 'altea',
-          text: "Veuillez m'excuser, une brève hésitation est survenue. N'hésitez pas à reformuler votre question ou à contacter Imene directement à imenekhodjabach@gmail.com.",
+          text: fallbackResult.text,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          language: 'fr',
+          language: fallbackResult.language,
         },
       ]);
       setStatusText('Ready for dialogue');
@@ -345,9 +371,47 @@ export const VoiceConcierge: React.FC<{
     }
   };
 
-  // Push-to-talk recording for standard chat
+  // Push-to-talk recording for standard chat (browser SpeechRecognition + MediaRecorder fallback)
   const startRecording = async () => {
     try {
+      const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+      if (SpeechRecognitionClass) {
+        const recognition = new SpeechRecognitionClass();
+        recognitionRef.current = recognition;
+        recognition.lang = activeLangTab === 'ar' ? 'ar-SA' : activeLangTab === 'en' ? 'en-US' : 'fr-FR';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+          setIsRecording(true);
+          setStatusText('Listening... Speak now, then click mic to stop');
+        };
+
+        recognition.onresult = (event: any) => {
+          const transcript = event.results?.[0]?.[0]?.transcript;
+          if (transcript && transcript.trim()) {
+            handleSendMessage(transcript.trim());
+          } else {
+            setStatusText('Voice not recognized. Please retry or type.');
+          }
+        };
+
+        recognition.onerror = (event: any) => {
+          console.warn('Speech recognition notice:', event.error);
+          setIsRecording(false);
+          setStatusText('Ready for dialogue');
+        };
+
+        recognition.onend = () => {
+          setIsRecording(false);
+        };
+
+        recognition.start();
+        return;
+      }
+
+      // Fallback: MediaRecorder
       audioChunksRef.current = [];
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -363,7 +427,6 @@ export const VoiceConcierge: React.FC<{
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         stream.getTracks().forEach((track) => track.stop());
 
-        // Convert blob to base64
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
@@ -406,6 +469,14 @@ export const VoiceConcierge: React.FC<{
   };
 
   const stopRecording = () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // ignore
+      }
+      recognitionRef.current = null;
+    }
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
